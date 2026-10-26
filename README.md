@@ -14,7 +14,7 @@ npm test
 
 ## Install a GitHub release
 
-The package is distributed from versioned Git tags in the public GitHub repository. Use Node.js 24 or later and Git. Once tag `v0.3.0` is available, install it with:
+The package is distributed from versioned Git tags in the public GitHub repository. Use Node.js 24 or later and Git. Install the published `v0.3.0` release with:
 
 ```sh
 npm install github:ferpasri/testar-abstraction#v0.3.0
@@ -52,7 +52,7 @@ async function construct(sources: AnalysisSource[], rulesJson: string) {
 
 `AnalysisSource` identifies an evidence source and supplies its fingerprint and reconstructed records. `EvidenceInput` contains maps of runs, sequences, observations, action descriptions, and action executions. Existing readers can supply a compatible object; no dashboard classes are required. Map keys are the corresponding record IDs, and execution keys are `execution.id`. Large indexes can use `bigint` in memory.
 
-The result contains abstract states, transitions supported by recorded executions, original-record references, unmatched observations, and executions without a connected result. Observation-order links remain separately identified. Current transitions combine executions with the same endpoint states and exact action type.
+The result contains abstract states, transitions supported by recorded executions, original-record references, unmatched observations, and executions without a connected result. Observation-order links remain separately identified. Optional action rules also match available actions and executions by operation, target properties, and selected parameters. The result distinguishes recorded action links from matches inferred through those rules. See the [action rules](docs/language.md#match-actions).
 
 Original evidence is retained. Abstraction rules choose the distinctions that matter for a testing objective. An exploration strategy decides which action to execute next and belongs to its consuming application.
 
@@ -63,11 +63,11 @@ Original evidence is retained. Abstraction rules choose the distinctions that ma
 
 ## Versioning
 
-The first package release is `0.3.0`, aligned with the `0.3` compatibility family of [TESTAR Evidence specs](https://github.com/ferpasri/testar-evidence-specs/tree/v0.3.0). It consumes evidence schema `3` records.
+The current source version is `0.3.1`, with optional action matching added after the published `0.3.0` release. Both are aligned with the `0.3` compatibility family of [TESTAR Evidence specs](https://github.com/ferpasri/testar-evidence-specs/tree/v0.3.0). It consumes evidence schema `3` records.
 
 The first two version numbers identify the shared compatibility family. The last number tracks this project's compatible releases independently: an abstraction fix can be published as `0.3.1` while the specs remain at `0.3.0`. Each release documents the evidence format it supports. Breaking API or rule-meaning changes require an explicit compatibility-family or language-version decision.
 
-The JSON abstraction language is version `1`. The interpreter reports `1.1.0` to identify the interpretation behavior used to produce a result. Those identifiers have different purposes from the package version.
+The JSON abstraction language is version `1`. The interpreter reports `1.2.0` to identify the interpretation behavior used to produce a result. Those identifiers have different purposes from the package version.
 
 ## Create a GitHub release
 
@@ -79,6 +79,6 @@ npm run build
 npm pack --dry-run
 ```
 
-Commit and push the verified source, then create a GitHub release with tag `v0.3.0` pointing to that commit. Keep released tags unchanged; publish later compatible changes under a new tag such as `v0.3.1` and set the matching version in `package.json`.
+Commit and push the verified source, then create a GitHub release with tag `v0.3.1` pointing to that commit. Keep released tags unchanged; publish later compatible changes under a new tag such as `v0.3.2` and set the matching version in `package.json`.
 
-Consumers install the tagged source with the command above. They do not need a separate checkout of this repository or an npm-registry publication. The `prepare` script builds the distributed files during Git dependency installation.
+After creating `v0.3.1`, consumers can install it with `npm install github:ferpasri/testar-abstraction#v0.3.1`. They do not need a separate checkout of this repository or an npm-registry publication. The `prepare` script builds the distributed files during Git dependency installation.

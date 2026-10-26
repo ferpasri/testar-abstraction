@@ -38,6 +38,22 @@ export function projectFields(
     const explanations: FieldExplanation[] = [];
     for (const field of fields) {
         const selected = selectProperty(properties, field.keys);
+        for (const segment of field.path ?? []) {
+            const value = selected.reading.value;
+            if (
+                selected.reading.kind === "missing" ||
+                value === null ||
+                typeof value !== "object" ||
+                !Object.hasOwn(value, segment)
+            ) {
+                selected.reading = { kind: "missing" };
+                break;
+            }
+            selected.reading = {
+                kind: "value",
+                value: (value as Record<string, unknown>)[segment],
+            };
+        }
         if (selected.reading.kind === "missing") {
             if (field.required) {
                 throw new Error("Required field '" + field.name + "' has no captured property.");

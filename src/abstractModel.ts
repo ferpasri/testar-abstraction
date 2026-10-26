@@ -1,3 +1,5 @@
+import type { AbstractAction } from "./abstractActionTypes.js";
+import { buildActionEvidence } from "./abstractActions.js";
 import { testRunForSequence } from "./evidence-input.js";
 import { canonical } from "./common.js";
 import type { RecordedExecution } from "./evidence-input.js";
@@ -64,10 +66,28 @@ export function buildAbstractModel(
             nodeIds,
         );
     }
+    const actionEvidence = preview.definition.actions
+        ? buildActionEvidence(index, nodeByObservation, preview.definition.actions)
+        : undefined;
+    const actionByExecution = actionEvidence
+        ? new Map(
+              actionEvidence.actions.flatMap((action) =>
+                  action.executions.map((item) => [canonical(item.reference), action] as const),
+              ),
+          )
+        : undefined;
     const edges = new Map<string, AbstractModelEdge>();
     const unlinkedExecutions: UnlinkedExecution[] = [];
     for (const { source, execution } of index.executions.values()) {
-        connectExecution(source, execution, index, nodeByObservation, edges, unlinkedExecutions);
+        connectExecution(
+            source,
+            execution,
+            index,
+            nodeByObservation,
+            edges,
+            unlinkedExecutions,
+            actionByExecution,
+        );
     }
     connectObservationOrder(index, nodeByObservation, edges);
     nodes.sort((left, right) => compare(left.id, right.id));
@@ -84,6 +104,7 @@ export function buildAbstractModel(
         compare(canonical(left.reference), canonical(right.reference)),
     );
     return {
+        ...(actionEvidence ? { actionEvidence } : {}),
         nodes,
         edges: orderedEdges,
         unlinkedExecutions,
@@ -136,7 +157,7 @@ function addNode(
     nodeIds: Set<string>,
 ): void {
     if (nodeIds.has(node.id)) {
-        throw new Error("The abstraction preview repeats a abstract state identity.");
+        throw new Error("The abstraction preview repeats an abstract state identity.");
     }
     nodeIds.add(node.id);
     for (const reference of node.members) {
@@ -162,6 +183,7 @@ function connectExecution(
     nodeByObservation: Map<string, string>,
     edges: Map<string, AbstractModelEdge>,
     unlinked: UnlinkedExecution[],
+    actionByExecution?: Map<string, AbstractAction>,
 ): void {
     const data = execution.execution;
     const reference: ExecutionReference = {
@@ -204,7 +226,15 @@ function connectExecution(
         });
         return;
     }
-    const id = canonical(["execution", sourceNode, targetNode, action.action_type]);
+    const abstractAction = actionByExecution?.get(canonical(reference));
+    const actionType = abstractAction?.actionType ?? action.action_type;
+    const id = canonical([
+        "execution",
+        sourceNode,
+        targetNode,
+        actionType,
+        ...(actionByExecution ? [abstractAction?.id ?? canonical(reference)] : []),
+    ]);
     let edge = edges.get(id);
     if (!edge) {
         edge = {
@@ -213,7 +243,8 @@ function connectExecution(
             source: sourceNode,
             target: targetNode,
             label: "",
-            actionType: action.action_type,
+            actionType,
+            ...(abstractAction ? { abstractAction: abstractAction.id } : {}),
             executions: [],
             orderLinks: [],
         };

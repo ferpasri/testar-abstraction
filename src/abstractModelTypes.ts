@@ -1,3 +1,4 @@
+import type { AbstractActionEvidence } from "./abstractActionTypes.js";
 import type { RecordedExecution } from "./evidence-input.js";
 import type { EvidenceReference } from "./types.js";
 
@@ -27,6 +28,7 @@ export interface AbstractModelEdge {
     target: string;
     label: string;
     actionType?: string;
+    abstractAction?: string;
     executions: ExecutionReference[];
     orderLinks: AbstractModelOrderLink[];
 }
@@ -39,6 +41,7 @@ export interface UnlinkedExecution {
 }
 
 export interface AbstractModel {
+    actionEvidence?: AbstractActionEvidence;
     nodes: AbstractModelNode[];
     edges: AbstractModelEdge[];
     unlinkedExecutions: UnlinkedExecution[];

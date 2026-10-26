@@ -1,6 +1,6 @@
 {
     "name": "testar-abstraction",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "Shared abstraction rules and traceable abstract models for TESTAR evidence",
     "type": "module",
     "license": "BSD-3-Clause",

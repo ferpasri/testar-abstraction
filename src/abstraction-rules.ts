@@ -30,6 +30,7 @@ const transform = z.discriminatedUnion("op", [
 const field = z.strictObject({
     name: text,
     keys,
+    path: z.array(text).min(1).max(16).optional(),
     required: z.boolean().optional(),
     transforms: z.array(transform).max(12).optional(),
 });
@@ -51,12 +52,27 @@ const predicate = z.discriminatedUnion("op", [
     }),
     z.strictObject({ keys, op: z.literal("contains"), value: stringValue }),
 ]);
+const actionRules = z.strictObject({
+    type: z.array(transform).max(12).optional(),
+    description: fields.optional(),
+    target: fields.optional(),
+    parameters: z
+        .strictObject({ available: fields, executed: fields })
+        .refine(
+            (value) =>
+                canonical(value.available.map((item) => item.name).sort()) ===
+                canonical(value.executed.map((item) => item.name).sort()),
+            "Available and executed parameter fields must have the same names.",
+        )
+        .optional(),
+});
 const definitionSchema = z
     .strictObject({
         version: z.literal(1),
         name: text,
         state: fields,
         capture: z.enum(["same", "ignore"]),
+        actions: actionRules.optional(),
         widgets: z
             .strictObject({
                 fields: fields.refine(

@@ -1,11 +1,12 @@
 import type { EvidenceInput } from "./evidence-input.js";
 import type { Observation } from "./evidence-input.js";
 
-export const INTERPRETER_VERSION = "1.1.0";
+export const INTERPRETER_VERSION = "1.2.0";
 export const ABSTRACTION_LIMITS = {
     definitionBytes: 64 * 1024,
     observations: 10_000,
     widgets: 100_000,
+    actionRecords: 100_000,
     hierarchyDepth: 128,
     comparisonBytes: 32 * 1024 * 1024,
     normalizedValueBytes: 1024 * 1024,
@@ -32,6 +33,7 @@ export type Transform =
 export interface Field {
     name: string;
     keys: string[];
+    path?: string[];
     required?: boolean;
     transforms?: Transform[];
 }
@@ -46,6 +48,7 @@ export interface AbstractionRules {
     name: string;
     state: Field[];
     capture: "same" | "ignore";
+    actions?: ActionRules;
     widgets?: {
         fields: Field[];
         exclude?: Predicate[];
@@ -53,6 +56,13 @@ export interface AbstractionRules {
         order: "preserve" | "sort";
         descendants: "exclude" | "keep";
     };
+}
+
+export interface ActionRules {
+    type?: Transform[];
+    description?: Field[];
+    target?: Field[];
+    parameters?: { available: Field[]; executed: Field[] };
 }
 
 export interface EvidenceReference {

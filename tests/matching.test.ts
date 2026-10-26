@@ -656,7 +656,7 @@ describe("widget comparisons and original evidence", () => {
         expect(sources.map((item) => canonical([...item.evidence.observations]))).toEqual(before);
         expect(first.policyFingerprint).toMatch(/^[a-f0-9]{64}$/u);
         expect(first.definition).toEqual(DEFAULT_PRESETS[0].definition);
-        expect(first.interpreterVersion).toBe("1.1.0");
+        expect(first.interpreterVersion).toBe("1.2.0");
     });
 
     it("keeps unknown widget placeholders without proposing unsupported correspondences", async () => {

@@ -6,6 +6,7 @@ export { DEFAULT_PRESETS } from "./presets.js";
 export * from "./types.js";
 export { buildAbstractModel } from "./abstractModel.js";
 export * from "./abstractModelTypes.js";
+export * from "./abstractActionTypes.js";
 export * from "./evidence-input.js";
 export { observationOrderLinks, type ObservationOrderLink } from "./observation-order.js";
 export { edgeLabel, groupLabel } from "./abstractModelLabels.js";

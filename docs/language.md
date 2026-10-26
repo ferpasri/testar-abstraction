@@ -1,6 +1,6 @@
 # Abstraction language
 
-Rules choose which captured state and widget properties distinguish observations. The language version is `1`. Presets and custom JSON rules use the same interpreter.
+Rules choose which captured state and widget properties distinguish observations and, optionally, which captured action details distinguish actions. The language version is `1`. Presets and custom JSON rules use the same interpreter.
 
 ## A small JSON language
 
@@ -85,3 +85,40 @@ When a policy compares widgets and the widget capture is unavailable, the observ
 A preview retains the full rules, interpreter version, source fingerprints, selected runs, and original-record references. Oracle results keep their original targets; grouping observations does not extend oracle coverage to other observations.
 
 `parseAbstractionRules()` validates rule syntax and processing bounds. `previewAbstraction()` applies those rules to the selected reconstructed evidence. See the [specification](SPEC.md) and [conformance cases](../conformance/README.md) for the input and expected output contracts.
+
+## Match actions
+
+Add an `actions` section to match actions within each abstract state. For example, this distinguishes buttons by their captured role and name, while explicitly treating `tap` and `click` as the same operation:
+
+```json
+"actions": {
+    "type": [{"op": "map", "values": {"tap": "click"}}],
+    "target": [
+        {"name": "role", "keys": ["ui.role"], "required": true},
+        {"name": "name", "keys": ["ui.name"], "required": true}
+    ]
+}
+```
+
+`type` transforms the recorded `action_type`. `target` reads properties of the widget bound to that available action or execution, in its source observation. `description` optionally selects fields from the action description's properties. The selected values, together with the normalized operation, identify an abstract action within its abstract source state. Recorded IDs remain references, rather than being compared across tools.
+
+An absent target widget, missing required field, unsuitable transform, or an entire selected field list with no captured values leaves that action unmatched with a reason. Missing optional fields remain different from captured values, including JSON null. A rule with an empty `actions` object deliberately compares only the operation. Omitting `actions` keeps the existing transition grouping and produces no `actionEvidence` collection.
+
+To distinguish input values, select where the planned value appears in the action description and where the executed value appears in execution parameters:
+
+```json
+"parameters": {
+    "available": [
+        {"name": "amount", "keys": ["planned_input"], "path": ["amount"], "required": true}
+    ],
+    "executed": [
+        {"name": "amount", "keys": ["amount"], "required": true}
+    ]
+}
+```
+
+Place this fragment inside `actions`. Both lists must use the same field names; their property keys can differ. `path` optionally reads nested keys after selecting the first present property. In this example, the available action's properties contain `{"planned_input": {"amount": 100}}`, while the execution parameters contain `{"amount": 100}`. No parameter mapping is inferred from a tool's name. When `parameters` is omitted, input values do not distinguish abstract actions.
+
+Suppose one trace reports A1 through A5, another observation later executes A4, and a second source executes A5. If the selected states and action values match, the abstract state has five abstract actions. A4 and A5 retain their supporting executions; A1, A2, and A3 have no matched execution in that evidence. The original availability records still show which source reported each action. Matching is a choice made by these rules, rather than proof that the actions have identical effects.
+
+The result preserves explicit action links separately from inferred matches and identifies ambiguous matches. See the [specification](SPEC.md#match-available-actions-and-executions) for those relationships.

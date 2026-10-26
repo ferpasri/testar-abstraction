@@ -211,7 +211,7 @@ describe("explicit URL path parameter normalization", () => {
         const valid = definition({ remove_path_parameters: ["session", "token"] });
         expect(parseAbstractionRules(canonical(valid))).toEqual(valid);
         expect(valid.version).toBe(1);
-        expect(INTERPRETER_VERSION).toBe("1.1.0");
+        expect(INTERPRETER_VERSION).toBe("1.2.0");
         for (const names of [
             [""],
             ["x".repeat(257)],
