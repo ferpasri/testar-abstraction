@@ -6,39 +6,11 @@ import {
     parseAbstractionRules,
     previewAbstraction,
     runKey,
-    type AnalysisSource,
-    type EvidenceInput,
     type AbstractionPreview,
     type AbstractModel,
 } from "../src/index.js";
 import { canonical } from "../src/common.js";
-
-type WireEvidence = {
-    [K in keyof EvidenceInput]: Array<EvidenceInput[K] extends Map<string, infer V> ? V : never>;
-};
-interface Input {
-    sources: Array<{ id: string; label: string; fingerprint: string; evidence: WireEvidence }>;
-    selected_runs: Array<{ source: string; run: string }>;
-}
-
-function sources(input: Input): AnalysisSource[] {
-    return input.sources.map((source) => ({
-        ...source,
-        evidence: {
-            runs: new Map(source.evidence.runs.map((item) => [item.id, item])),
-            sequences: new Map(source.evidence.sequences.map((item) => [item.id, item])),
-            observations: new Map(source.evidence.observations.map((item) => [item.id, item])),
-            actions: new Map(source.evidence.actions.map((item) => [item.id, item])),
-            executions: new Map(
-                source.evidence.executions.map((item) => [item.execution.id, item]),
-            ),
-        },
-    }));
-}
-
-function ordered<T>(values: T[]): T[] {
-    return [...values].sort((a, b) => canonical(a).localeCompare(canonical(b), "en"));
-}
+import { conformanceSources, ordered, type ConformanceInput } from "./support/conformance.js";
 
 function result(preview: AbstractionPreview, model: AbstractModel) {
     const members = new Map(model.nodes.map((node) => [node.id, ordered(node.members)]));
@@ -82,9 +54,9 @@ describe("shared abstraction conformance", () => {
         it(name, async () => {
             const input = JSON.parse(
                 await readFile(`${directory}/${name}/input.json`, "utf8"),
-            ) as Input;
+            ) as ConformanceInput;
             const before = canonical(input);
-            const evidence = sources(input);
+            const evidence = conformanceSources(input);
             const rules = parseAbstractionRules(
                 await readFile(`${directory}/${name}/rules.json`, "utf8"),
             );

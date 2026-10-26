@@ -1,17 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-    INTERPRETER_VERSION,
     ABSTRACTION_LIMITS,
     parseAbstractionRules,
-    previewAbstraction,
-    runKey,
-    type AnalysisSource,
     type AbstractionRules,
     type Transform,
 } from "../src/index.js";
 import { projectFields } from "../src/fields.js";
 import { canonical } from "../src/common.js";
-import type { Observation } from "../src/evidence-input.js";
 
 type UrlOptions = Omit<Extract<Transform, { op: "url" }>, "op">;
 
@@ -34,61 +29,6 @@ function definition(options: UrlOptions = {}): AbstractionRules {
             },
         ],
         capture: "same",
-    };
-}
-
-function source(id: string, address: string): AnalysisSource {
-    const observation: Observation = {
-        id: "observation",
-        test_sequence: "sequence",
-        observation_index: 0,
-        timestamp_micros: 0,
-        recorded_state: {
-            id: "state",
-            properties: { "ui.url": address },
-            widgets: [],
-            capture: "complete",
-        },
-        available_action_scope: "unknown",
-        available_actions: [],
-        artifacts: [],
-    };
-    return {
-        id,
-        label: id,
-        fingerprint: "fingerprint-" + id,
-        evidence: {
-            runs: new Map([
-                [
-                    "run",
-                    {
-                        id: "run",
-                        producer: "generic",
-                        source_run: "run",
-                        properties: {},
-                        status: "running",
-                        reason: null,
-                    },
-                ],
-            ]),
-            sequences: new Map([
-                [
-                    "sequence",
-                    {
-                        id: "sequence",
-                        test_run: "run",
-                        sequence_index: 1,
-                        source_sequence: "1",
-                        properties: {},
-                        status: "running",
-                        reason: null,
-                    },
-                ],
-            ]),
-            observations: new Map([[observation.id, observation]]),
-            actions: new Map(),
-            executions: new Map(),
-        },
     };
 }
 
@@ -207,11 +147,10 @@ describe("explicit URL path parameter normalization", () => {
         });
     });
 
-    it("validates selected names and keeps the DSL language version unchanged", () => {
+    it("validates path-parameter name types, lengths, and count", () => {
         const valid = definition({ remove_path_parameters: ["session", "token"] });
         expect(parseAbstractionRules(canonical(valid))).toEqual(valid);
         expect(valid.version).toBe(1);
-        expect(INTERPRETER_VERSION).toBe("1.2.0");
         for (const names of [
             [""],
             ["x".repeat(257)],
@@ -240,33 +179,5 @@ describe("explicit URL path parameter normalization", () => {
                 remove_path_parameters: ["session"],
             }),
         ).toThrow("absolute URL");
-    });
-
-    it("merges different session tokens only under an explicit removal rule", async () => {
-        const sources = [
-            source("first", "https://example.test/login;session=one"),
-            source("second", "https://example.test/login;session=two"),
-        ];
-        const selected = sources.map((item) => runKey(item.id, "run"));
-        const exact = await previewAbstraction(sources, definition(), selected);
-        expect(exact.groups).toHaveLength(2);
-        const normalized = await previewAbstraction(
-            sources,
-            definition({
-                remove_path_parameters: ["session"],
-            }),
-            selected,
-        );
-        expect(normalized.groups).toHaveLength(1);
-        expect(normalized.groups[0].members).toHaveLength(2);
-        expect(normalized.groups[0].members.map((member) => member.stateFields[0].raw)).toEqual([
-            "https://example.test/login;session=one",
-            "https://example.test/login;session=two",
-        ]);
-        expect(
-            sources[0].evidence.observations.get("observation")!.recorded_state.properties[
-                "ui.url"
-            ],
-        ).toBe("https://example.test/login;session=one");
     });
 });

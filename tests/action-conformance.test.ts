@@ -9,40 +9,13 @@ import {
     ABSTRACTION_LIMITS,
     AbstractionLimitError,
     projectFields,
-    type AnalysisSource,
-    type EvidenceInput,
     type AbstractModel,
 } from "../src/index.js";
 import { canonical } from "../src/common.js";
+import { conformanceSources, ordered, type ConformanceInput } from "./support/conformance.js";
 
-type WireEvidence = {
-    [K in keyof EvidenceInput]: Array<EvidenceInput[K] extends Map<string, infer V> ? V : never>;
-};
-interface Input {
-    sources: Array<{ id: string; label: string; fingerprint: string; evidence: WireEvidence }>;
-    selected_runs: Array<{ source: string; run: string }>;
-}
-function sources(input: Input): AnalysisSource[] {
-    return input.sources.map((source) => ({
-        ...source,
-        evidence: {
-            runs: new Map(source.evidence.runs.map((item) => [item.id, item])),
-            sequences: new Map(source.evidence.sequences.map((item) => [item.id, item])),
-            observations: new Map(source.evidence.observations.map((item) => [item.id, item])),
-            actions: new Map(source.evidence.actions.map((item) => [item.id, item])),
-            executions: new Map(
-                source.evidence.executions.map((item) => [item.execution.id, item]),
-            ),
-        },
-    }));
-}
 function reverseMap<T>(records: Map<string, T>): Map<string, T> {
     return new Map([...records].reverse());
-}
-function sorted<T>(items: T[]): T[] {
-    return [...items].sort((left, right) =>
-        canonical(left) < canonical(right) ? -1 : canonical(left) > canonical(right) ? 1 : 0,
-    );
 }
 function semanticResult(model: AbstractModel) {
     const evidence = model.actionEvidence!;
@@ -80,7 +53,7 @@ function semanticResult(model: AbstractModel) {
 }
 function normalize(value: unknown): unknown {
     if (Array.isArray(value)) {
-        return sorted(value.map(normalize));
+        return ordered(value.map(normalize));
     }
     if (value !== null && typeof value === "object") {
         return Object.fromEntries(
@@ -96,9 +69,9 @@ describe("shared action abstraction conformance", () => {
         it(name, async () => {
             const input = JSON.parse(
                 await readFile(`${directory}/${name}/input.json`, "utf8"),
-            ) as Input;
+            ) as ConformanceInput;
             const before = canonical(input);
-            const evidence = sources(input);
+            const evidence = conformanceSources(input);
             const rules = parseAbstractionRules(
                 await readFile(`${directory}/${name}/rules.json`, "utf8"),
             );
@@ -132,8 +105,10 @@ describe("shared action abstraction conformance", () => {
 });
 
 async function example(name = "available-and-executed") {
-    const input = JSON.parse(await readFile(`${directory}/${name}/input.json`, "utf8")) as Input;
-    const evidence = sources(input);
+    const input = JSON.parse(
+        await readFile(`${directory}/${name}/input.json`, "utf8"),
+    ) as ConformanceInput;
+    const evidence = conformanceSources(input);
     const rules = parseAbstractionRules(await readFile(`${directory}/${name}/rules.json`, "utf8"));
     return {
         evidence,

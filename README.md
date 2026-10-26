@@ -14,16 +14,10 @@ npm test
 
 ## Install a GitHub release
 
-The package is distributed from versioned Git tags in the public GitHub repository. Use Node.js 24 or later and Git. Install the published `v0.3.0` release with:
+The package is distributed from versioned Git tags in the public GitHub repository. Replace `RELEASE_TAG` with the tag selected from the [published releases](https://github.com/ferpasri/testar-abstraction/releases):
 
 ```sh
-npm install github:ferpasri/testar-abstraction#v0.3.0
-```
-
-The consumer's dependency is:
-
-```json
-"testar-abstraction": "github:ferpasri/testar-abstraction#v0.3.0"
+npm install github:ferpasri/testar-abstraction#RELEASE_TAG
 ```
 
 npm downloads the tagged source, installs the build dependencies, and runs the package's `prepare` script to compile the JavaScript and TypeScript declarations. Consumers import `testar-abstraction` by name. Commit the consumer's `package-lock.json` to retain the resolved commit. Scripts must be enabled for the package build.
@@ -58,27 +52,10 @@ Original evidence is retained. Abstraction rules choose the distinctions that ma
 
 - [Specification](docs/SPEC.md)
 - [Abstraction language](docs/language.md)
+- [Worked examples](docs/examples.md)
 - [Conformance cases](conformance/README.md)
 - [Remaining work](TODO.md)
 
-## Versioning
+## Compatibility and releases
 
-The current source version is `0.3.1`, with optional action matching added after the published `0.3.0` release. Both are aligned with the `0.3` compatibility family of [TESTAR Evidence specs](https://github.com/ferpasri/testar-evidence-specs/tree/v0.3.0). It consumes evidence schema `3` records.
-
-The first two version numbers identify the shared compatibility family. The last number tracks this project's compatible releases independently: an abstraction fix can be published as `0.3.1` while the specs remain at `0.3.0`. Each release documents the evidence format it supports. Breaking API or rule-meaning changes require an explicit compatibility-family or language-version decision.
-
-The JSON abstraction language is version `1`. The interpreter reports `1.2.0` to identify the interpretation behavior used to produce a result. Those identifiers have different purposes from the package version.
-
-## Create a GitHub release
-
-Verify the release from this repository:
-
-```sh
-npm run check
-npm run build
-npm pack --dry-run
-```
-
-Commit and push the verified source, then create a GitHub release with tag `v0.3.1` pointing to that commit. Keep released tags unchanged; publish later compatible changes under a new tag such as `v0.3.2` and set the matching version in `package.json`.
-
-After creating `v0.3.1`, consumers can install it with `npm install github:ferpasri/testar-abstraction#v0.3.1`. They do not need a separate checkout of this repository or an npm-registry publication. The `prepare` script builds the distributed files during Git dependency installation.
+See [compatibility and release preparation](docs/versioning.md) for the version identifiers, supported evidence schema, and release checks. The package version and build requirements are recorded in [package.json](package.json).

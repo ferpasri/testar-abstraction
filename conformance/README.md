@@ -12,13 +12,16 @@ These inputs describe records after an evidence reader has reconstructed a trace
 
 To run a case, turn each record array into a map keyed by its ID (`execution.id` for execution records), apply the rules to the selected runs, and compare the result with `expected.json`. Array order is ignored. Expected memberships use original-record references rather than implementation-generated group IDs or display labels.
 
-| Case                  | Behavior                                                                                                             |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `normalized-pages`    | Merge pages after explicit session-data removal and title normalization; retain execution support from both sources. |
-| `filtered-widgets`    | Exclude a changing widget while retaining correspondence between stable widgets.                                     |
-| `unmatched-and-order` | Retain a missing-title observation, failed/incomplete executions, and distinct observation-order links.              |
-| `capture-same`        | Keep different reported capture statuses separate.                                                                   |
-| `capture-ignore`      | Group the same observations when the rules explicitly ignore capture status.                                         |
+| Case                    | Behavior                                                                                                             |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `normalized-pages`      | Merge pages after explicit session-data removal and title normalization; retain execution support from both sources. |
+| `filtered-widgets`      | Exclude a changing widget while retaining correspondence between stable widgets.                                     |
+| `unmatched-and-order`   | Retain a missing-title observation, failed/incomplete executions, and distinct observation-order links.              |
+| `capture-same`          | Keep different reported capture statuses separate.                                                                   |
+| `loan-structure-only`   | Group form, denied result, and approved result when styles and text are not selected.                                |
+| `loan-display-changes`  | Separate the form from the result panel using captured styles; denied and approved results still match.              |
+| `loan-display-and-text` | Also compare result text to distinguish denied and approved results at the same address and title.                   |
+| `capture-ignore`        | Group the same observations when the rules explicitly ignore capture status.                                         |
 
 `npm test` runs all cases. The tests also reverse source order and check that the supplied records were preserved. These cases belong to this repository and can be reused by other implementations of the abstraction language.
 
@@ -37,3 +40,9 @@ To run a case, turn each record array into a map keyed by its ID (`execution.id`
 | `actions-scoped-by-state`   | Keep the same action description separate when it belongs to different abstract states.                                                                     |
 
 The action tests also reverse sources, selected runs, and every input map, and verify that original records remain unchanged.
+
+## Loan visibility example
+
+The three `loan-*` cases use identical inputs and different rules. Two sequences submit the same loan form; one receives `Denied`, the other `Approved`. All four observations keep the same address, title, and three widgets. The result panel changes from `source.style.display: "none"` to `"block"`, while its child status widget reports `source.style.visibility: "visible"` throughout. Its parent still hides it before submission.
+
+Structure alone produces one abstract state. Adding styles produces two states: form and result. Adding text produces three: form, denied result, and approved result. Both recorded executions remain supported under every policy. All widgets stay in the input and in comparison; these rules do not filter hidden widgets or compute a visibility boolean. The `source.*` keys are generic example properties, with no dependency on a particular adapter.

@@ -40,7 +40,7 @@ An action with no supporting execution means no execution was matched in the sel
 
 ## Processing
 
-The implementation has no dependency on a dashboard, browser control, or an execution strategy. It uses standard URL, text encoding, and Web Crypto APIs available in browsers and Node.js 24 and later. It reads no files and makes no network requests.
+The implementation has no dependency on a dashboard, browser control, or an execution strategy. It uses standard URL, text encoding, and Web Crypto APIs available in the [supported environments](../README.md). It reads no files and makes no network requests.
 
 The interpreter bounds rules to 64 KiB, selected observations to 10,000, selected widgets to 100,000, hierarchy depth to 128, normalized values to 1 MiB, and accumulated comparison data to 32 MiB per state or action processing pass. Action comparison accepts at most 100,000 availability and execution records combined. Exceeding an input or processing limit produces an error; an observation or action with unsuitable comparison values remains unmatched with a reason.
 
@@ -50,8 +50,6 @@ A caller can run computation in a worker and cancel by terminating that worker. 
 
 Core tests exercise normalization, property selection, widget filtering and hierarchy, capture distinctions, scoped identities, provenance, processing limits, and transition support. Shared conformance cases compare generic input records and rules with expected memberships and relationships. See [conformance](../conformance/README.md).
 
-## Releases and compatibility
+## Compatibility
 
-The package starts at `0.3.0`, in the same `0.3` compatibility family as TESTAR Evidence specs. Project-specific compatible releases increment the last number independently. Release documentation identifies the supported evidence schema; the initial release supports schema `3`.
-
-Consumers install a versioned GitHub dependency such as `github:ferpasri/testar-abstraction#v0.3.0` and import `testar-abstraction` by name. npm runs `prepare` to build the JavaScript and TypeScript declarations from the tagged source. The package also includes this specification, the language reference, and the conformance cases. Package versions, JSON language versions, and interpreter identifiers describe separate aspects of compatibility; see [versioning](../README.md#versioning).
+Supported evidence and rule-language versions, interpreter identity, and release preparation are documented in [compatibility and releases](versioning.md).
